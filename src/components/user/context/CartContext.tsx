@@ -4,39 +4,15 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { showToast } from '../alert/alert';
 import { Product } from '@/components/user/DataDetails/DataDetails';
 
-// interface CartItem {
-  
-//   id: string;
-//   name: string;
-//   price: number;
-//   originalPrice: number;
-//   discount: number;
-//   description: string;
-//   features: string[];
-//   images: string[];
-//   colors: { name: string; value: string; inStock: boolean }[];
-//   sizes: { name: string; inStock: boolean }[];
-//   stock: number;
-//   sku: string;
-//   reviews: {
-//     id: string;
-//     user: string;
-//     rating: number;
-//     date: string;
-//     comment: string;
-//   }[];
-//   specifications: { name: string; value: string }[];
-//   quantity: number;
-//   selected?: boolean; // New field to support checkbox
-// }
+
 
 interface CartContextType {
   cartItems: Product[];
   addToCart: (item: Omit<Product, 'quantity'>) => void;
-  removeFromCart: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
+  removeFromCart: (id: number) => void;
+  updateQuantity: (id: number, quantity: number) => void;
   cartCount: number;
-  handleCheckboxChange: (id: string, isChecked: boolean) => void;
+  handleCheckboxChange: (id: number, isChecked: boolean) => void;
   selectedTotal: number;
   handleSelectAllChange: (isChecked: boolean) => void;
   allSelected: boolean;
@@ -78,13 +54,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const removeFromCart = (id: string) => {
+  const removeFromCart = (id: number) => {
     const item = cartItems.find(item => item.id === id);
     setCartItems(prevItems => prevItems.filter(item => item.id !== id));
     showToast(`${item?.name} removed from cart!`, 'error');
   };
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = (id: number, quantity: number) => {
     if (quantity < 1) return;
     setCartItems(prevItems =>
       prevItems.map(item =>
@@ -93,7 +69,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const handleCheckboxChange = (id: string, isChecked: boolean) => {
+  const handleCheckboxChange = (id: number, isChecked: boolean) => {
     setCartItems(prevItems =>
       prevItems.map(item =>
         item.id === id ? { ...item, selected: isChecked } : item

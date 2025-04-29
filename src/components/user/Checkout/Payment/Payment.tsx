@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Info } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { toast } from "@/hooks/use-toast"
+import { v4 as uuidv4 } from "uuid"
 
 export default function PaymentMethodPage() {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null)
@@ -16,6 +16,51 @@ export default function PaymentMethodPage() {
       description: "Your order has been placed and will be processed shortly.",
     })
   }
+
+  const [totalAmt, setTotalAmt] = useState(300)
+
+  const [formData, setFormData] = useState({
+    amount: "100",
+    total_amount: "110",
+    tax_amount: "0",
+    transaction_uuid: uuidv4(),
+    product_delivery_charge: "0",
+    product_service_charge: "0",
+    product_code: "EPAYTEST",
+    failure_url: "https://developer.esewa.com.np/failure",
+    success_url: "https://developer.esewa.com.np/success",
+    signed_field_names: "total_amount,transaction_uuid,product_code",
+    signature: "",
+    secret: "8gBm/:&EnhH.1/q",
+  })
+
+  const CryptoJS = require("crypto-js")
+
+  const generateSignature = (total_amount: string, transaction_uuid: string, product_code: string, secret: string) => {
+    const hashString = `total_amount=${total_amount},transaction_uuid=${transaction_uuid},product_code=${product_code}`
+    const hash = CryptoJS.HmacSHA256(hashString, secret)
+    const hashSignature = CryptoJS.enc.Base64.stringify(hash)
+    return hashSignature
+  }
+
+  // Update signature whenever important fields change
+  useEffect(() => {
+    const { total_amount, transaction_uuid, product_code, secret } = formData
+    const hashedSignature = generateSignature(total_amount, transaction_uuid, product_code, secret)
+    setFormData((prev) => ({
+      ...prev,
+      signature: hashedSignature,
+    }))
+  }, [formData.total_amount, formData.transaction_uuid])
+
+  // Remove the handleAmountChange function and add this useEffect
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      amount: totalAmt.toString(),
+      total_amount: totalAmt.toString(),
+    }))
+  }, [totalAmt])
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12 bg-gray-50">
@@ -35,8 +80,13 @@ export default function PaymentMethodPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* Credit/Debit Card */}
             <Card
-              className={`cursor-pointer hover:border-[#00A0D0] transition-colors ${selectedMethod === "card" ? "border-[#00A0D0] border-2" : ""}`}
-              onClick={() => setSelectedMethod("card")}
+              className={`cursor-pointer hover:border-[#00A0D0] transition-colors ${selectedMethod === "card" ? "border-[#00A0D0] border-2" : ""} opacity-50`}
+              onClick={() =>
+                toast({
+                  title: "Not Available",
+                  description: "This payment method is not available at the moment.",
+                })
+              }
             >
               <CardContent className="p-6 flex flex-col items-center justify-center text-center">
                 <div className="w-12 h-12 flex items-center justify-center mb-3">
@@ -47,7 +97,7 @@ export default function PaymentMethodPage() {
                   </svg>
                 </div>
                 <h3 className="font-medium">Credit/Debit Card</h3>
-                <p className="text-sm text-gray-500">Credit/Debit Card</p>
+                <p className="text-sm text-gray-500">Not Available</p>
               </CardContent>
             </Card>
 
@@ -77,22 +127,32 @@ export default function PaymentMethodPage() {
 
             {/* IME Pay */}
             <Card
-              className={`cursor-pointer hover:border-[#00A0D0] transition-colors ${selectedMethod === "ime" ? "border-[#00A0D0] border-2" : ""}`}
-              onClick={() => setSelectedMethod("ime")}
+              className={`cursor-pointer hover:border-[#00A0D0] transition-colors ${selectedMethod === "ime" ? "border-[#00A0D0] border-2" : ""} opacity-50`}
+              onClick={() =>
+                toast({
+                  title: "Not Available",
+                  description: "This payment method is not available at the moment.",
+                })
+              }
             >
               <CardContent className="p-6 flex flex-col items-center justify-center text-center">
                 <div className="w-12 h-12 flex items-center justify-center mb-3">
                   <div className="bg-red-600 text-white text-xs font-bold py-1 px-2 rounded">IME PAY</div>
                 </div>
                 <h3 className="font-medium">IME Pay</h3>
-                <p className="text-sm text-gray-500">IME Pay Mobile Wallet</p>
+                <p className="text-sm text-gray-500">Not Available</p>
               </CardContent>
             </Card>
 
             {/* Cash on Delivery */}
             <Card
-              className={`cursor-pointer hover:border-[#00A0D0] transition-colors ${selectedMethod === "cash" ? "border-[#00A0D0] border-2" : ""}`}
-              onClick={() => setSelectedMethod("cash")}
+              className={`cursor-pointer hover:border-[#00A0D0] transition-colors ${selectedMethod === "cash" ? "border-[#00A0D0] border-2" : ""} opacity-50`}
+              onClick={() =>
+                toast({
+                  title: "Not Available",
+                  description: "This payment method is not available at the moment.",
+                })
+              }
             >
               <CardContent className="p-6 flex flex-col items-center justify-center text-center">
                 <div className="w-12 h-12 flex items-center justify-center mb-3">
@@ -104,16 +164,39 @@ export default function PaymentMethodPage() {
                   </svg>
                 </div>
                 <h3 className="font-medium">Cash on Delivery</h3>
-                <p className="text-sm text-gray-500">Cash on Delivery</p>
+                <p className="text-sm text-gray-500">Not Available</p>
               </CardContent>
             </Card>
           </div>
 
-          {selectedMethod && (
+          {selectedMethod === "esewa" && (
             <div className="mt-8">
-              <Button className="bg-[#FF6A00] hover:bg-[#E05F00] text-white px-8 py-2 h-12" onClick={handlePayment}>
-                Pay Now
-              </Button>
+              <form action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST">
+                {/* Hidden fields */}
+                <input type="hidden" name="amount" value={formData.amount} required />
+                <input type="hidden" name="tax_amount" value={formData.tax_amount} required />
+                <input type="hidden" name="total_amount" value={formData.total_amount} required />
+                <input type="hidden" name="transaction_uuid" value={formData.transaction_uuid} required />
+                <input type="hidden" name="product_code" value={formData.product_code} required />
+                <input type="hidden" name="product_service_charge" value={formData.product_service_charge} required />
+                <input type="hidden" name="product_delivery_charge" value={formData.product_delivery_charge} required />
+                <input type="hidden" name="success_url" value={formData.success_url} required />
+                <input type="hidden" name="failure_url" value={formData.failure_url} required />
+                <input type="hidden" name="signed_field_names" value={formData.signed_field_names} required />
+                <input type="hidden" name="signature" value={formData.signature} required />
+
+                <div className="bg-gray-100 p-4 rounded-md mb-4">
+                  <p className="text-gray-700">
+                    Payment Amount: <span className="font-semibold">Rs. {totalAmt}</span>
+                  </p>
+                </div>
+
+                <input
+                  type="submit"
+                  value="Pay with eSewa"
+                  className="bg-[#60B158] hover:bg-[#4e9e47] text-white font-semibold py-2 px-4 rounded mt-4 cursor-pointer w-full"
+                />
+              </form>
             </div>
           )}
         </div>
@@ -124,11 +207,11 @@ export default function PaymentMethodPage() {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-600">Subtotal(2 items and shipping fee included)</span>
-                <span>Rs. 138</span>
+                <span>556</span>
               </div>
               <div className="flex justify-between items-center mt-4">
                 <span className="font-medium text-lg">Total Amount</span>
-                <span className="text-[#FF6A00] text-xl font-medium">Rs. 138</span>
+                <span className="text-[#FF6A00] text-xl font-medium">Rs. {totalAmt}</span>
               </div>
             </div>
           </div>

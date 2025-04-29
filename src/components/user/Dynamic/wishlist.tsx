@@ -12,27 +12,29 @@ export function Wishlist() {
   const { addToCart, } = useCart();
 
 
-  const handleAddToCart = (item: { id: string; name: string; price: number; images: string[];  discount: number }) => {
-    const { id, name, price, images, discount } = item;
+  const handleAddToCart = (item: { id: number; name: string; price: number; image: string;  discount: number }) => {
+    const { id, name, price, image, discount } = item;
 
     addToCart({
       id,
       name,
       price,
-      images: [images[0]],
+      image,
       discount,
-      originalPrice: 0,
       description: '',
-      features: [],
+      rating: 0,
       colors: [],
       sizes: [],
       stock: 0,
-      sku: '',
-      reviews: [],
       specifications: [],
-      categories: [],
-      subcategory: [],
-      brand: ''
+      brand: '',
+      original_price: '',
+      code: '',
+      sold_count: 0,
+      slug: null,
+      created_at: '',
+      vendor: 0,
+      stock_threshold: 0
     });
      showToast(`${name} added to cart!`, "success");
   };
@@ -58,7 +60,7 @@ export function Wishlist() {
           <div key={item.id} className="bg-white p-2 rounded-lg shadow-md relative">
             {/* Product Image */}
             <img
-              src={item.images[0]}
+              src={item.image}
               alt={item.name}
               className="w-full h-24 object-cover rounded-md"
             />
@@ -66,7 +68,7 @@ export function Wishlist() {
             {/* Discount Badge */}
             {item.discount && (
               <div className="absolute top-4 left-4 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                {item.discount}
+                {item.discount} % OFF
               </div>
             )}
 

@@ -4,32 +4,30 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { showToast } from '../alert/alert';
 
 interface WishlistItem {
-  id: string;
+  id: number;
   name: string;
   price: number;
-  originalPrice: number;
+  original_price: string;
+  rating: number;
+  code: string;
+  brand: string;
+ 
   discount: number;
   description: string;
-  features: string[];
-  images: string[];
-  colors: { name: string; value: string; inStock: boolean }[];
+
+  image: string;
+  color: { name: string; value: string; inStock: boolean }[];
   sizes: { name: string; inStock: boolean }[];
   stock: number;
-  sku: string;
-  reviews: {
-    id: string;
-    user: string;
-    rating: number;
-    date: string;
-    comment: string;
-  }[];
+  
+ 
   specifications: { name: string; value: string }[];
 }
 
 interface WishlistContextType {
   wishlistItems: WishlistItem[];
   addToWishlist: (item: WishlistItem) => void;
-  removeFromWishlist: (id: string) => void;
+  removeFromWishlist: (id: number) => void;
   wishlistCount: number;
 }
 
@@ -62,7 +60,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const removeFromWishlist = (id: string) => {
+  const removeFromWishlist = (id: number) => {
 
     
     showToast(`${wishlistItems.find(item => item.id === id)?.name} removed from wishlist!`, "error") 

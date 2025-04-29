@@ -1,38 +1,31 @@
   export  type Product = {
-    id: string;
+    id: number;
     name: string;
     price: number;
-    originalPrice?: number;
+    original_price: string;
     discount: number;
     description: string;
-    features: string[];
-    images: string[];
-    colors: { name: string; value: string; inStock: boolean }[];
+    image: string; // URL string
+    rating: number;
+    code: string;
+    colors: string[]; // from JSONField
     sizes: { name: string; inStock: boolean }[];
     stock: number;
-    sku: string;
-    reviews: {
-      id: string;
-      user: string;
-      rating: number;
-      date: string;
-      comment: string;
-      
-    }[];
-    categories: string[];
-    subcategory: string[];
+    sold_count: number;
+    slug: string | null;
     brand: string;
     selected?: boolean;
     quantity: number;
     isNew?: boolean
     isFeatured?: boolean
     isOutOfStock?: boolean
-      
-
     specifications: { name: string; value: string }[];
+    created_at: string; // DateTimeField comes as ISO string
+    vendor: number; // vendor ID (User ID)
+    stock_threshold: number;
   };
 
-  
+
 
 const productData: Product[] = [
  
@@ -227,7 +220,7 @@ const productData: Product[] = [
         id: "4",
         name: "Stylish Denim Jacket",
         price: 79.99,
-        originalPrice: 99.99,
+       
         discount: 20,
         description:
           "This stylish denim jacket is a wardrobe essential. Made from high-quality cotton denim, it offers both comfort and durability. The timeless design features a classic button-up front and pockets for a functional yet fashionable look.",

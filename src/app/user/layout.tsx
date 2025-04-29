@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CartProvider } from "@/components/user/context/CartContext";
+
 import { Navbar } from "@/components/user/Layout/Navbar";
 import Footer  from "@/components/user/Layout/Footer";
 
@@ -19,13 +19,16 @@ export default function RootLayout({
   return (
  
      <>  
-      
+
+     
             < Navbar />
           
           {children}
           < Footer />
       
+        
           </>
   
+
   );
 }

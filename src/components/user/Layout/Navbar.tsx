@@ -15,7 +15,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
 import LoginModal from '@/components/user/Login/LoginModal';
 import { useRouter  } from 'next/navigation';
 
-import { useCookies } from 'react-cookie';
 
 export function Navbar() {
   const { cartCount } = useCart();

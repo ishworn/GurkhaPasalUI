@@ -94,6 +94,8 @@ export function Cart() {
   useEffect(() => {
     handleSelectAllChange(false);
   }, []);
+
+  
   
 
   return (

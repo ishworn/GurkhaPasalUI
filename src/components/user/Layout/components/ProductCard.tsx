@@ -7,42 +7,100 @@ import { Button } from '@/components/ui/button';
 import { useWishlist } from '../../context/wishlistContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { showToast, } from "@/components/user/alert/alert";
-import productData from '../../DataDetails/DataDetails';
+
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/use-toast';
-import { Product } from '@/components/user/DataDetails/DataDetails';
 
 
+export type Review = {
+  id: number;
+  user_id: number;
+  product_id: number;
+  created_at: string; // DateTimeField comes as ISO string
+  user: string; // This will hold the username
+ 
+  
+  comment: string;
+  rating: number;
+  product: Product;
+}
 
 
+export type Product = {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  original_price: string;
+  discount: number 
+  image: string; // URL string
+  rating: number;
+  code: string;
+  brand: string;
+  slug: string | null;
+  sold_count: number;
+  category: {
+    id: number;
+    name: string;
+    image: string | null;
+    vendor: number | null;
+  };
+  colors: string[]; // from JSONField
+  sizes: string[]; // from JSONField
+  
+  created_at: string; // DateTimeField comes as ISO string
+  vendor: number; // vendor ID (User ID)
+  stock: number;
+  stock_threshold: number;
+  additional_images: string[]; // from JSONField
+  specifications: string[]; // from JSONField
+};
 
-export function ProductCard({ id, name, price, images,  discount ,  subcategory,  stock ,reviews ,originalPrice }: Product) {
+export function ProductCard({ id, name, price, image,  discount ,  category,brand,  stock , rating ,original_price }: Product) {
   const { addToCart } = useCart();
   const { addToWishlist } = useWishlist();
   const router = useRouter();
   const [isAddedToWishlist, setIsAddedToWishlist] = useState(false);
+  
+ 
+
+
+
+
+
+
+
+
+
+
+  
 
   const handleAddToCart = () => {
     addToCart({
-      id, name, price, images, discount,
-      originalPrice: 0,
+      id, name, price, image, discount,
+      original_price,
       description: '',
-      features: [],
       colors: [],
       sizes: [],
       stock: 0,
-      sku: '',
-      reviews: [],
       specifications: [],
-      categories: [],
-      subcategory: [],
-      brand: ''
+      brand: '',
+      rating: 0,
+      code: '',
+      sold_count: 0,
+      slug: null,
+      created_at: '',
+      vendor: 0,
+      stock_threshold: 0
     });
     showToast(`${name} added to cart!`, "success");
   };
+
+
+
 
   const quickView = (productId: string) => {
     // In a real app, this would open a modal with product details
@@ -54,15 +112,19 @@ export function ProductCard({ id, name, price, images,  discount ,  subcategory,
 
   const handleAddToWishlist = () => {
     addToWishlist({
-      id, name, price, images, discount,
-      originalPrice: 0,
+      id, name, price, image, discount,
+      original_price,
+      rating: 0,
+      code: '',
+      brand: '',
+      
       description: '',
-      features: [],
-      colors: [],
+    
+      color: [],
       sizes: [],
       stock: 0,
-      sku: '',
-      reviews: [],
+      
+      
       specifications: []
     });
     setIsAddedToWishlist(!isAddedToWishlist); // Toggle wishlist state
@@ -78,7 +140,7 @@ export function ProductCard({ id, name, price, images,  discount ,  subcategory,
     {/* Image */}
     <div className="relative w-64 aspect-[5/4] overflow-hidden bg-muted/20">
       <Image
-        src={images[0]}
+        src={image}
         alt={name}
         layout="fill"
         className="object-cover transition-transform group-hover:scale-100"
@@ -92,7 +154,7 @@ export function ProductCard({ id, name, price, images,  discount ,  subcategory,
           </Badge>
         )}
         {stock === 0 && (
-          <Badge variant="outline" className="bg-background/80 text-[10px] px-1.5 py-0.5">
+          <Badge variant="outline" className="bg-primary text-[10px] px-1.5 py-0.5">
             Out of Stock
           </Badge>
         )}
@@ -145,8 +207,8 @@ export function ProductCard({ id, name, price, images,  discount ,  subcategory,
 
     {/* Info */}
     <div className="px-3 py-2">
-      {subcategory && (
-        <div className="text-[11px] text-muted-foreground mb-1">{subcategory}</div>
+      { brand && (
+        <div className="text-[11px] text-muted-foreground mb-1">{brand}</div>
       )}
       
         <h3 className="text-sm font-medium line-clamp-1 group-hover:text-primary transition-colors mb-1">
@@ -154,30 +216,34 @@ export function ProductCard({ id, name, price, images,  discount ,  subcategory,
         </h3>
      
 
-      {reviews.length > 0 && (
+
+{rating > 0 ? (
         <div className="flex items-center mb-1">
           <div className="flex">
             {[1, 2, 3, 4, 5].map((star) => (
               <Star
                 key={star}
-                className={`h-3 w-3 ${star <= Math.round(reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length)
+                className={`h-3 w-3 ${star <= Math.round(rating)
                   ? "fill-yellow-400 text-yellow-400"
                   : "text-muted-foreground"
                   }`}
               />
             ))}
           </div>
-          <span className="ml-1 text-[11px] text-muted-foreground">
-            ({reviews.length})
+          <span className="text-xs text-muted-foreground ml-1">
+           {rating} reviews
           </span>
         </div>
+      ) : (
+        <div className="">{category.name} </div>  
       )}
 
+
       <div className="flex items-center gap-2">
-        <span className="font-semibold text-sm">${price.toFixed(2)}</span>
-        {originalPrice && (
+        <span className="font-semibold text-sm">${price}</span>
+        {original_price && (
           <span className="text-xs text-muted-foreground line-through">
-            ${originalPrice.toFixed(2)}
+            ${original_price}
           </span>
         )}
       </div>

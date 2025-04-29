@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
-import { Minus, Plus, Star, Heart, Share2, Truck, ShieldCheck, RotateCcw, Check, AlertCircle } from "lucide-react"
+import { Minus, Plus, Star, Heart, Share2, Truck, ShieldCheck, RotateCcw, Check, AlertCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -11,29 +11,36 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
-import productData from "@/components/user/DataDetails/DataDetails"
+
 
 import ProductRecommendations from "../DataDetails/product-recommendations"
 import { useRouter } from 'next/navigation';
 import { useCart } from "../context/CartContext"
 import LoginModal from "../Login/LoginModal"
+import { Product, Review } from "../Layout/components/ProductCard"
 
-export default function ProductDetail({ productId }: { productId: string }) {
-  // Get the selected product based on the productId
-  const product = productData.find((product) => product.id === productId)
+export default function ProductDetail({ product }: { product: Product }) {
 
   if (!product) {
+    // Handle the case where the product is not found
+
     return <p>Product not found.</p> // Display if the product is not found
   }
 
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
-  const [selectedColor, setSelectedColor] = useState(product.colors.length > 0 ? product.colors[0].name : '')
-  const [selectedSize, setSelectedSize] = useState(product.sizes.length > 0 ? product.sizes[0].name : '')
+  const [selectedColor, setSelectedColor] = useState(product.colors.length > 0 ? product.colors[0] : '')
+  const [selectedSize, setSelectedSize] = useState(product.sizes.length > 0 ? product.sizes[0] : '')
   const [isWishlisted, setIsWishlisted] = useState(false)
   const { toast } = useToast()
   const [showLogin, setShowLogin] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [photo, setPhoto] = useState<File | null>(null);
+
+  
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const productReviews = reviews.filter((review) => review.product.id === product.id);
+
+  
 
   const {
 
@@ -48,7 +55,7 @@ export default function ProductDetail({ productId }: { productId: string }) {
   } = useCart();
 
   // Ensure there is a valid product image before trying to access it
-  const selectedProductImage = product.images?.[selectedImage] || "/placeholder.svg"
+
 
 
   const incrementQuantity = () => {
@@ -64,12 +71,12 @@ export default function ProductDetail({ productId }: { productId: string }) {
   const checkLoginStatus = async (): Promise<boolean> => {
     try {
       const token = localStorage.getItem("jwt"); // or whatever key you used
-  
+
       if (!token) {
         console.warn("No token found in localStorage.");
         return false;
       }
-  
+
       const res = await fetch("http://127.0.0.1:8000/api/user/", {
         method: "GET",
         headers: {
@@ -77,10 +84,10 @@ export default function ProductDetail({ productId }: { productId: string }) {
           "Content-Type": "application/json",
         },
       });
-  
+
       const data = await res.json(); // optional, for debugging
       console.log("Status:", res.status, "Response:", data);
-  
+
       return res.ok; // true if 200 OK
     } catch (error) {
       console.error("Error checking login status:", error);
@@ -100,6 +107,48 @@ export default function ProductDetail({ productId }: { productId: string }) {
   }
 
   const router = useRouter();
+
+  const [rating, setRating] = useState(0);
+const [comment, setComment] = useState("");
+
+const handleSubmit = async (e: { preventDefault: () => void }) => {
+  const isLoggedIn = await checkLoginStatus(); // secure check with cookies
+ 
+  if (!isLoggedIn) {
+
+    localStorage.setItem("redirectAfterLogin", "/user/product/ " + product.id);
+  
+    setShowLogin(true);
+
+    return;
+  }
+  e.preventDefault();
+
+  const response = await fetch('http://127.0.0.1:8000/api/reviews/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    
+    },
+    body: JSON.stringify({
+      product_id: product.id,
+      user_id : 1,
+      rating,
+      comment,
+      photo: photo ? await photo.arrayBuffer() : null, // Convert file to ArrayBuffer if needed
+      // optionally: user or user_id if not from token
+    }),
+  });
+
+  if (response.ok) {
+    // Refresh reviews or show a success message
+    setRating(0);
+    setComment("");
+    // Optionally reload product reviews
+  } else {
+    console.error("Failed to submit review");
+  }
+};
 
 
 
@@ -141,8 +190,28 @@ export default function ProductDetail({ productId }: { productId: string }) {
     })
   }
 
-  const averageRating = product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length
 
+  useEffect(() => {
+    async function fetchReviews() {
+      try {
+        const res = await fetch(`http://127.0.0.1:8000/api/reviews/?product_id=${product.id}`);
+       
+
+        if (!res.ok) {
+          throw new Error('Failed to fetch');
+        }
+        const data = await res.json();
+        console.log("Fetched Reviews:", data); // Log the fetched reviews
+
+
+        setReviews(data);
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+      }
+    }
+
+    fetchReviews();
+  }, []);
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:ml-8 lg:mt-8">
       {/* Left side - Images */}
@@ -152,7 +221,7 @@ export default function ProductDetail({ productId }: { productId: string }) {
             <Badge className="absolute top-2 left-2 z-10 bg-primary">{product.discount}% OFF</Badge>
           )}
           <Image
-            src={selectedProductImage}
+            src={product.image}
             alt={product.name}
             fill
             className="object-cover"
@@ -160,7 +229,7 @@ export default function ProductDetail({ productId }: { productId: string }) {
           />
         </div>
         <div className="flex space-x-2 overflow-x-auto pb-2">
-          {product.images?.map((image, index) => (
+          {product.additional_images?.map((image: string, index: number) => (
             <button
               key={index}
               onClick={() => setSelectedImage(index)}
@@ -175,18 +244,28 @@ export default function ProductDetail({ productId }: { productId: string }) {
             </button>
           ))}
         </div>
+
       </div>
 
       {/* Right side - Product details and reviews */}
       <div className="space-y-6">
         <div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1 mt-1">
-            <span>SKU: {product.sku}</span>
+            <span>SKU: {product.code}</span>
             <span>•</span>
             <div className="flex items-center">
-              <Check className="h-4 w-4 text-green-500 mr-1" />
-              <span className="text-green-600">In Stock</span>
-            </div>
+  {product.stock > 0 ? (
+    <>
+      <Check className="h-4 w-4 text-green-500 mr-1" />
+      <span className="text-green-600">In Stock</span>
+    </>
+  ) : (
+    <>
+      <X className="h-4 w-4 text-red-500 mr-1" />
+      <span className="text-red-600">Out of Stock</span>
+    </>
+  )}
+</div>
           </div>
 
           <h1 className="text-3xl font-bold">{product.name}</h1>
@@ -196,20 +275,20 @@ export default function ProductDetail({ productId }: { productId: string }) {
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                   key={star}
-                  className={`h-5 w-5 ${star <= averageRating ? "fill-primary text-primary" : "text-muted-foreground"}`}
+                  className={`h-5 w-5 ${star <= product.rating ? "fill-primary text-primary" : "text-muted-foreground"}`}
                 />
               ))}
             </div>
             <span className="ml-2 text-sm text-muted-foreground">
-              {averageRating.toFixed(1)} ({product.reviews.length} reviews)
+              {product.rating.toFixed(1)} ({productReviews.length} reviews)
             </span>
           </div>
 
           <div className="mt-4 flex items-center gap-2">
-            {product.originalPrice && (
-              <span className="text-lg text-muted-foreground line-through">${product.originalPrice.toFixed(2)}</span>
+            {product.original_price && (
+              <span className="text-lg text-muted-foreground line-through">${product.original_price}</span>
             )}
-            <span className="text-2xl font-semibold text-primary">${product.price.toFixed(2)}</span>
+            <span className="text-2xl font-semibold text-primary">${product.price}</span>
           </div>
         </div>
 
@@ -222,22 +301,30 @@ export default function ProductDetail({ productId }: { productId: string }) {
               Color: <span className="text-muted-foreground">{selectedColor}</span>
             </h3>
             <div className="flex flex-wrap gap-2">
-              {product.colors?.map((color) => (
-                <button
-                  key={color.name}
-                  onClick={() => color.inStock && setSelectedColor(color.name)}
-                  className={`relative h-10 w-10 rounded-full border ${selectedColor === color.name ? "ring-2 ring-primary ring-offset-2" : ""} ${!color.inStock ? "opacity-50 cursor-not-allowed" : ""}`}
-                  disabled={!color.inStock}
-                  title={color.name}
+              {Array.isArray(product.colors) && product.colors.length > 0 && (
+                <RadioGroup
+                  value={selectedColor}
+                  onValueChange={setSelectedColor}
+                  className="flex flex-wrap gap-2 mt-4"
                 >
-                  <span className="absolute inset-0 rounded-full" style={{ backgroundColor: color.value }} />
-                  {!color.inStock && (
-                    <span className="absolute inset-0 flex items-center justify-center">
-                      <AlertCircle className="h-6 w-6 text-muted-foreground" />
-                    </span>
-                  )}
-                </button>
-              ))}
+                  {product.colors.map((color) => (
+                    <div key={color} className="flex items-center space-x-2">
+                      <RadioGroupItem
+                        value={color}
+                        id={`color-${color}`}
+                        className="hidden"
+                      />
+                      <Label
+                        htmlFor={`color-${color}`}
+                        className={`flex h-10 px-4 items-center justify-center rounded border 
+            ${selectedColor === color ? "bg-primary text-primary-foreground" : "hover:bg-muted cursor-pointer"}`}
+                      >
+                        {color}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              )}  
             </div>
           </div>
 
@@ -251,24 +338,31 @@ export default function ProductDetail({ productId }: { productId: string }) {
                 Size Guide
               </Button>
             </div>
-            <RadioGroup value={selectedSize} onValueChange={setSelectedSize} className="flex flex-wrap gap-2">
-              {product.sizes?.map((size) => (
-                <div key={size.name} className="flex items-center space-x-2">
-                  <RadioGroupItem
-                    value={size.name}
-                    id={`size-${size.name}`}
-                    disabled={!size.inStock}
-                    className="hidden"
-                  />
-                  <Label
-                    htmlFor={`size-${size.name}`}
-                    className={`flex h-10 w-10 items-center justify-center rounded border ${selectedSize === size.name ? "bg-primary text-primary-foreground" : ""} ${!size.inStock ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-muted"}`}
-                  >
-                    {size.name}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
+            {Array.isArray(product.sizes) && product.sizes.length > 0 && (
+              <RadioGroup
+                value={selectedSize}
+                onValueChange={setSelectedSize}
+                className="flex flex-wrap gap-2"
+              >
+                {product.sizes.map((size) => (
+                  <div key={size} className="flex items-center space-x-2">
+                    <RadioGroupItem
+                      value={size}
+                      id={`size-${size}`}
+                      className="hidden"
+                    />
+                    <Label
+                      htmlFor={`size-${size}`}
+                      className={`flex h-10 w-16 items-center justify-center rounded border 
+            ${selectedSize === size ? "bg-primary text-primary-foreground" : "hover:bg-muted cursor-pointer"}`}
+                    >
+                      {size}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            )}
+
           </div>
 
           {/* Quantity */}
@@ -356,34 +450,87 @@ export default function ProductDetail({ productId }: { productId: string }) {
           </TabsContent>
           <TabsContent value="specifications">
             <ul className="list-disc ml-6">
-              {product.specifications.map((spec, index) => (
-                <li key={index}>{spec.name}</li>
+              {Object.entries(product.specifications || {}).map(([key, value], index) => (
+                <li key={index}>
+                  {key}: {value}
+                </li>
               ))}
             </ul>
           </TabsContent>
           <TabsContent value="reviews">
-            <div>
-              {product.reviews.map((review, index) => (
-                <Card key={index} className="mb-4">
-                  <div className="flex items-center">
-                    <span className="font-medium">{review.user}</span>
-                    <div className="flex items-center">
-                      <div className="flex">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            className={`h-4 w-4 ${star <= review.rating ? "fill-primary text-primary" : "text-muted-foreground"}`}
-                          />
-                        ))}
-                      </div>
-                      <span className="ml-2 text-sm text-muted-foreground">{review.rating}</span>
-                    </div>
-                  </div>
-                  <p className="mt-2">{review.comment}</p>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
+  <div>
+    {/* Existing reviews */}
+    {productReviews.map((review, index) => (
+      <Card key={index} className="mb-4">
+        <div className="flex items-center justify-between">
+          <span className="font-medium">{review.user}</span>
+          <div className="flex items-center">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star
+                key={star}
+                className={`h-4 w-4 ${star <= review.rating ? "fill-primary text-primary" : "text-muted-foreground"}`}
+              />
+            ))}
+            <span className="ml-2 text-sm text-muted-foreground">{review.rating}</span>
+          </div>
+        </div>
+        <p className="mt-2">{review.comment}</p>
+      </Card>
+    ))}
+
+    {/* Add Review Form */}
+    <Card className="mt-6 p-4">
+      <h3 className="font-semibold text-lg mb-2">Leave a Review</h3>
+      <form onSubmit={handleSubmit}>
+        <div className="mb-2">
+          <label className="block mb-1 text-sm font-medium">Your Rating:</label>
+          <div className="flex">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star
+                key={star}
+                onClick={() => setRating(star)}
+                className={`h-5 w-5 cursor-pointer ${star <= rating ? "fill-primary text-primary" : "text-muted-foreground"}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-2">
+          <label className="block mb-1 text-sm font-medium">Your Comment:</label>
+          <textarea
+            className="w-full border rounded-md p-2 text-sm"
+          
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            required
+          />
+        </div>
+        <div className="mb-4">
+  <button className="block mb-1 text-sm font-medium ">Upload a Photo (optional):</button>
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => {
+      if (e.target.files && e.target.files[0]) {
+        setPhoto(e.target.files[0]);
+      }
+    }}
+    className="text-sm"
+  />
+</div>
+
+
+        <button
+          type="submit"
+          className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90"
+        >
+          Submit Review
+        </button>
+      </form>
+    </Card>
+  </div>
+</TabsContent>
+
         </Tabs>
       </div>
       <div className="col-span-1 md:col-span-2 mb-4 mt-8">
