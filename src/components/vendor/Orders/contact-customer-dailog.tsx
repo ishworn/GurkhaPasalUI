@@ -19,24 +19,22 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2, Mail, Phone } from "lucide-react"
 
-interface ContactVendorDialogProps {
-  vendor: {
+interface ContactCustomerDialogProps {
+  order: {
     id: string
-    name: string
-    contactPerson: string
+    customer: string
+    status: "pending" | "processing" | "completed" | "cancelled"
+    date: string
+    total: string
     email: string
-    phone: string
-    status: "active" | "inactive" | "pending"
-    productsCount: number
-    dateAdded: string
-    logo?: string
+    address: string
   }
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
 const formSchema = z.object({
-  contactMethod: z.enum(["email", "phone"], {
+  contactMethod: z.enum(["email", "phone", "sms"], {
     required_error: "Please select a contact method.",
   }),
   subject: z.string().min(2, {
@@ -47,15 +45,15 @@ const formSchema = z.object({
   }),
 })
 
-export function ContactVendorDialog({ vendor, open, onOpenChange }: ContactVendorDialogProps) {
+export function ContactCustomerDialog({ order, open, onOpenChange }: Readonly<ContactCustomerDialogProps>) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       contactMethod: "email",
-      subject: `Order inquiry for ${vendor.id}`,
-      message: `Dear ${vendor.contactPerson},\n\nI am writing regarding our recent order with your company.\n\n`,
+      subject: `Your order ${order.id}`,
+      message: `Dear ${order.customer},\n\nRegarding your order ${order.id} placed on ${order.date}.\n\n`,
     },
   })
 
@@ -63,7 +61,7 @@ export function ContactVendorDialog({ vendor, open, onOpenChange }: ContactVendo
     setIsSubmitting(true)
     // Simulate API call
     setTimeout(() => {
-      console.log("Contacting vendor:", values)
+      console.log("Contacting customer:", values)
       setIsSubmitting(false)
       onOpenChange(false)
     }, 1000)
@@ -73,20 +71,20 @@ export function ContactVendorDialog({ vendor, open, onOpenChange }: ContactVendo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Contact Vendor</DialogTitle>
+          <DialogTitle>Contact Customer</DialogTitle>
           <DialogDescription>
-            Send a message to {vendor.name} ({vendor.id})
+            Send a message to {order.customer} regarding order {order.id}
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div className="flex items-center gap-2">
             <Mail className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm">{vendor.email}</span>
+            <span className="text-sm">{order.email}</span>
           </div>
           <div className="flex items-center gap-2">
             <Phone className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm">{vendor.phone}</span>
+            <span className="text-sm">+1 (555) 123-4567</span>
           </div>
         </div>
 
@@ -107,6 +105,7 @@ export function ContactVendorDialog({ vendor, open, onOpenChange }: ContactVendo
                     <SelectContent>
                       <SelectItem value="email">Email</SelectItem>
                       <SelectItem value="phone">Phone Call</SelectItem>
+                      <SelectItem value="sms">SMS</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

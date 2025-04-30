@@ -58,9 +58,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
   const [categoryPopup, setCategoryPopup] = useState(false)
   const [sectionPopup, setSectionPopup] = useState(false)
   const [newVendor, setNewVendor] = useState("")
-  const [categoryImg, setCategoryImg] = useState<File | string | null>(null)
   const [newCategory, setNewCategory] = useState("")
-  const [parentCategoryName, setParentCategoryName] = useState("")
   const [newSection, setNewSection] = useState("")
   const [categories, setCategories] = useState([
     { id: 1, name: "Electronics" },
@@ -188,105 +186,26 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
               Create a new product category
             </DialogDescription>
           </DialogHeader>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {role === "admin" || role === "vendor" && (
-                <FormField
-                  control={form.control}
-                  name="vendor"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="relative inline-block">
-                        {categoryImg && (
-                          <div className="mb-2 text-sm text-gray-600">
-                            Selected file: {typeof categoryImg === 'string' ? categoryImg : categoryImg.name}
-                          </div>
-                        )}
-                        <input
-                          type="file"
-                          accept=".jpg,.jpeg,.png,.gif"
-                          className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-                          onChange={(e) => {
-                            if (e.target.files && e.target.files[0]) {
-                              setCategoryImg(e.target.files[0]);
-                              console.log("Selected file:", e.target.files[0].name);
-                            }
-                          }}
-                        />
-                        <Button type="button" variant="outline" size="sm">
-                          <Upload className="mr-2 h-4 w-4" />
-                          Upload Image
-                        </Button>
-                      </div>
-
-                      <Input
-                        id="categoryName"
-                        value={newCategory}
-                        onChange={(e) => setNewCategory(e.target.value)}
-                        placeholder="Category name"
-                        className="col-span-3"
-                      />
-
-                      <div className="flex space-x-2">
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Vendor Name" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {vendors.map((vendor) => (
-                              <SelectItem key={vendor.id} value={vendor.name}>{vendor.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          className="h-10 w-10"
-                          onClick={() => setVendorPopup(true)}
-                        >
-                          <PlusCircle className="h-5 w-5 text-orange-500" />
-                        </Button>
-                      </div>
-
-                      <Input
-                        id="parentCategoryName"
-                        value={parentCategoryName}
-                        onChange={(e) => setParentCategoryName(e.target.value)}
-                        placeholder="Parent Category"
-                        className="col-span-3"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            addNewSection()
-                          }
-                        }}
-                      />
-
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-              <DialogFooter>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    "Add Category"
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Input
+                id="categoryName"
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                placeholder="Category name"
+                className="col-span-3"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    addNewCategory()
+                  }
+                }}
+              />
+              <Button type="button" onClick={addNewCategory}>
+                Add
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
