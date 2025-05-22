@@ -47,8 +47,17 @@ export function UserNav() {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Log out</span>
+          <Link
+            href="/admin/login"
+            className="flex items-center cursor-pointer"
+            onClick={() => {
+              localStorage.removeItem("jwt");
+              localStorage.removeItem("user");
+            }}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Log out</span>
+          </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

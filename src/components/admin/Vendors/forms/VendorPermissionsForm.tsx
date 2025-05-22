@@ -1,19 +1,13 @@
-import { Control } from "react-hook-form";
-import { z } from "zod";
-import { vendorFormSchema } from "@/schemas/vendorSchema";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-} from "@/components/ui/form";
-import { Checkbox } from "@/components/ui/checkbox";
+import type { Control } from "react-hook-form"
+import type { z } from "zod"
+import type { vendorFormSchema } from "@/schemas/vendorSchema"
+import { FormField, FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form"
+import { Checkbox } from "@/components/ui/checkbox"
 
-type VendorFormValues = z.infer<typeof vendorFormSchema>;
+type VendorFormValues = z.infer<typeof vendorFormSchema>
 
 interface VendorPermissionsFormProps {
-  control: Control<VendorFormValues>;
+  control: Control<VendorFormValues>
 }
 
 export function VendorPermissionsForm({ control }: VendorPermissionsFormProps) {
@@ -28,10 +22,7 @@ export function VendorPermissionsForm({ control }: VendorPermissionsFormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
-                  <Checkbox 
-                    checked={field.value} 
-                    onCheckedChange={field.onChange} 
-                  />
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>View Dashboard</FormLabel>
@@ -46,10 +37,7 @@ export function VendorPermissionsForm({ control }: VendorPermissionsFormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
-                  <Checkbox 
-                    checked={field.value} 
-                    onCheckedChange={field.onChange} 
-                  />
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>Analytics Access</FormLabel>
@@ -64,10 +52,7 @@ export function VendorPermissionsForm({ control }: VendorPermissionsFormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
-                  <Checkbox 
-                    checked={field.value} 
-                    onCheckedChange={field.onChange} 
-                  />
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>Reports Access</FormLabel>
@@ -82,10 +67,7 @@ export function VendorPermissionsForm({ control }: VendorPermissionsFormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
-                  <Checkbox 
-                    checked={field.value} 
-                    onCheckedChange={field.onChange} 
-                  />
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>Notifications</FormLabel>
@@ -100,10 +82,7 @@ export function VendorPermissionsForm({ control }: VendorPermissionsFormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
-                  <Checkbox 
-                    checked={field.value} 
-                    onCheckedChange={field.onChange} 
-                  />
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>Settings Access</FormLabel>
@@ -124,10 +103,7 @@ export function VendorPermissionsForm({ control }: VendorPermissionsFormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
-                  <Checkbox 
-                    checked={field.value} 
-                    onCheckedChange={field.onChange} 
-                  />
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>View Products</FormLabel>
@@ -142,10 +118,7 @@ export function VendorPermissionsForm({ control }: VendorPermissionsFormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
-                  <Checkbox 
-                    checked={field.value} 
-                    onCheckedChange={field.onChange} 
-                  />
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>Add Products</FormLabel>
@@ -160,10 +133,7 @@ export function VendorPermissionsForm({ control }: VendorPermissionsFormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
-                  <Checkbox 
-                    checked={field.value} 
-                    onCheckedChange={field.onChange} 
-                  />
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>Edit Products</FormLabel>
@@ -178,10 +148,7 @@ export function VendorPermissionsForm({ control }: VendorPermissionsFormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
-                  <Checkbox 
-                    checked={field.value} 
-                    onCheckedChange={field.onChange} 
-                  />
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>Delete Products</FormLabel>
@@ -202,10 +169,7 @@ export function VendorPermissionsForm({ control }: VendorPermissionsFormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
-                  <Checkbox 
-                    checked={field.value} 
-                    onCheckedChange={field.onChange} 
-                  />
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>View Orders</FormLabel>
@@ -220,10 +184,7 @@ export function VendorPermissionsForm({ control }: VendorPermissionsFormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
-                  <Checkbox 
-                    checked={field.value} 
-                    onCheckedChange={field.onChange} 
-                  />
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>Process Orders</FormLabel>
@@ -234,18 +195,45 @@ export function VendorPermissionsForm({ control }: VendorPermissionsFormProps) {
           />
           <FormField
             control={control}
+            name="permissions.orders.cancel"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Cancel Orders</FormLabel>
+                  <FormDescription>Allow vendor to cancel orders</FormDescription>
+                </div>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
             name="permissions.customers.view"
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
-                  <Checkbox 
-                    checked={field.value} 
-                    onCheckedChange={field.onChange} 
-                  />
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>View Customers</FormLabel>
                   <FormDescription>Allow vendor to view customer information</FormDescription>
+                </div>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="permissions.customers.contact"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Contact Customers</FormLabel>
+                  <FormDescription>Allow vendor to contact customers</FormDescription>
                 </div>
               </FormItem>
             )}
@@ -262,10 +250,7 @@ export function VendorPermissionsForm({ control }: VendorPermissionsFormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
-                  <Checkbox 
-                    checked={field.value} 
-                    onCheckedChange={field.onChange} 
-                  />
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>View CMS</FormLabel>
@@ -280,10 +265,7 @@ export function VendorPermissionsForm({ control }: VendorPermissionsFormProps) {
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
-                  <Checkbox 
-                    checked={field.value} 
-                    onCheckedChange={field.onChange} 
-                  />
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel>Edit CMS</FormLabel>
@@ -295,5 +277,5 @@ export function VendorPermissionsForm({ control }: VendorPermissionsFormProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }

@@ -11,32 +11,38 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, Loader2 } from "lucide-react"
+import { productService } from "./services/api-service"
 
 interface DeleteConfirmationDialogProps {
-  title: string
-  description: string
+  id: string
   open: boolean
   onOpenChange: (open: boolean) => void
-  onConfirm: () => void
+  onConfirm: () => Promise<void> | void
+  title?: string
+  description?: string
 }
 
 export function DeleteConfirmationDialog({
-  title,
-  description,
+  id,
   open,
   onOpenChange,
   onConfirm,
-}: DeleteConfirmationDialogProps) {
+  title = "Confirm Deletion",
+  description = "Are you sure you want to delete this item?",
+}: Readonly<DeleteConfirmationDialogProps>) {
   const [isDeleting, setIsDeleting] = useState(false)
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     setIsDeleting(true)
-    // Simulate API call
-    setTimeout(() => {
-      onConfirm()
-      setIsDeleting(false)
+    await productService.deleteProduct(id);
+    try {
+      await onConfirm()
       onOpenChange(false)
-    }, 1000)
+    } catch (error) {
+      console.error("Deletion failed:", error)
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   return (
@@ -56,17 +62,27 @@ export function DeleteConfirmationDialog({
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => onOpenChange(false)}
+            disabled={isDeleting}
+          >
             Cancel
           </Button>
-          <Button type="button" variant="destructive" onClick={handleConfirm} disabled={isDeleting}>
+          <Button 
+            type="button" 
+            variant="destructive" 
+            onClick={handleConfirm} 
+            disabled={isDeleting}
+          >
             {isDeleting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Deleting...
               </>
             ) : (
-              "Delete"
+              "Confirm Delete"
             )}
           </Button>
         </DialogFooter>
@@ -74,4 +90,3 @@ export function DeleteConfirmationDialog({
     </Dialog>
   )
 }
-

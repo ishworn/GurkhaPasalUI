@@ -34,13 +34,13 @@ export default function RootLayout({
   if (pathname.includes("admin")) {
     if (pathname.includes("admin/login")) {
       return (
-        <html lang='en'>
-          <body>
-          <div className="flex w-full flex-1 flex-col">
+          <html lang='en'>
+            <body>
+              <div className="flex w-full flex-1 flex-col">
                 <main className="flex-1 overflow-y-auto">{children}</main>
               </div>
-          </body>
-        </html>
+            </body>
+          </html>
       )
     }
     else {
@@ -80,13 +80,14 @@ export default function RootLayout({
   }
 
   if (pathname.includes("vendor")) {
+    
     if (pathname.includes("vendor/login")) {
       return (
         <html lang='en'>
           <body>
-          <div className="flex w-full flex-1 flex-col">
-                <main className="flex-1 overflow-y-auto">{children}</main>
-              </div>
+            <div className="flex w-full flex-1 flex-col">
+              <main className="flex-1 overflow-y-auto">{children}</main>
+            </div>
           </body>
         </html>
       )

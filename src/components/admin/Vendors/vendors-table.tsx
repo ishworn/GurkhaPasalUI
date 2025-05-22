@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { useVendorStore } from "./stores/vendorStore";
 import { Vendor } from "@/types/vendor";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function VendorsTable() {
   const { toast } = useToast();
@@ -22,19 +23,41 @@ export function VendorsTable() {
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingVendor, setDeletingVendor] = useState<Vendor | null>(null);
-  
-  const vendors = useVendorStore(state => state.vendors);
-  const updateVendor = useVendorStore(state => state.updateVendor);
-  const addVendor = useVendorStore(state => state.addVendor);
-  const removeVendor = useVendorStore(state => state.removeVendor);
-  const toggleVendorStatus = useVendorStore(state => state.toggleVendorStatus);
-  
+
+  // Get store state and actions
+  const {
+    vendors,
+    loading,
+    error,
+    fetchVendors,
+    updateVendor,
+    addVendor,
+    removeVendor,
+    toggleVendorStatus
+  } = useVendorStore();
+
   const itemsPerPage = 5;
+
+  // Fetch vendors on component mount
+  useEffect(() => {
+    fetchVendors();
+  }, [fetchVendors]);
+
+  // Handle API errors
+  useEffect(() => {
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error loading vendors",
+        description: error,
+      });
+    }
+  }, [error, toast]);
 
   const filteredVendors = vendors.filter(
     (vendor) =>
       vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (vendor.contact_person && vendor.contact_person.toLowerCase().includes(searchTerm.toLowerCase())) ||
       vendor.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
@@ -70,42 +93,106 @@ export function VendorsTable() {
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deletingVendor) {
-      removeVendor(deletingVendor.id);
-      toast({
-        title: "Vendor deleted",
-        description: "The vendor has been successfully deleted.",
-      });
-      setDeleteDialogOpen(false);
+      try {
+        fetch(`http://127.0.0.1:8000/api/vendors/${deletingVendor.id}/`, { 
+          method: "DELETE" 
+        });
+        removeVendor(deletingVendor.id); 
+        toast({
+          title: "Vendor deleted",
+          description: "The vendor has been successfully deleted.",
+        });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error deleting vendor",
+          description: error instanceof Error ? error.message : "An unknown error occurred",
+        });
+      } finally {
+        setDeleteDialogOpen(false);
+      }
     }
   };
 
-  const handleToggleVendorStatus = (id: string) => {
-    toggleVendorStatus(id);
-    const vendor = vendors.find(v => v.id === id);
-    toast({
-      title: vendor?.status === "active" ? "Vendor activated" : "Vendor deactivated",
-      description: `The vendor has been ${vendor?.status === "active" ? "activated" : "deactivated"}.`,
-    });
-  };
-
-  const handleSaveVendor = (vendor: Vendor) => {
-    if (editingVendor) {
-      updateVendor(vendor);
-      toast({
-        title: "Vendor updated",
-        description: "The vendor has been successfully updated.",
+  const handleToggleVendorStatus = async (id: string) => {
+    try {
+      await fetch(`http://127.0.0.1:8000/api/vendors/${id}/`,{
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: vendors.find(v => v.id === id)?.status === "active" ? "inactive" : "active" }),
       });
-    } else {
-      addVendor(vendor);
+
+      await toggleVendorStatus(id);
+      const vendor = vendors.find(v => v.id === id);
       toast({
-        title: "Vendor created",
-        description: "The vendor has been successfully created.",
+        title: vendor?.status === "active" ? "Vendor activated" : "Vendor deactivated",
+        description: `The vendor has been ${vendor?.status === "active" ? "activated" : "deactivated"}.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error updating status",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
       });
     }
-    setDialogOpen(false);
   };
+
+  const handleSaveVendor = async (vendor: Vendor) => {
+    try {
+      if (editingVendor) {
+        await updateVendor(vendor);
+        toast({
+          title: "Vendor updated",
+          description: "The vendor has been successfully updated.",
+        });
+      } else {
+        await addVendor(vendor);
+        toast({
+          title: "Vendor created",
+          description: "The vendor has been successfully created.",
+        });
+      }
+      setDialogOpen(false);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: editingVendor ? "Error updating vendor" : "Error creating vendor",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+      });
+    }
+  };
+
+  if (loading && vendors.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle>Vendors</CardTitle>
+              <CardDescription>Loading vendor data...</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center space-x-4 p-4 border-b">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[250px]" />
+                  <Skeleton className="h-4 w-[200px]" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -133,7 +220,7 @@ export function VendorsTable() {
             className="h-8 w-full sm:w-[300px]"
           />
         </div>
-        
+
         <TableWrapper>
           {paginatedVendors.map((vendor) => (
             <div key={vendor.id} className="flex flex-col border-b p-4 last:border-0 md:hidden">
@@ -142,7 +229,7 @@ export function VendorsTable() {
                   <h3 className="font-medium">{vendor.name}</h3>
                   <p className="text-sm text-muted-foreground">{vendor.email}</p>
                 </div>
-                <VendorActionMenu 
+                <VendorActionMenu
                   vendor={vendor}
                   onEdit={() => handleEditVendor(vendor)}
                   onDelete={() => handleDeleteVendor(vendor)}
@@ -153,16 +240,16 @@ export function VendorsTable() {
                 <Badge variant="outline" className={getStatusColor(vendor.status)}>
                   {vendor.status}
                 </Badge>
-                <span className="text-sm">{vendor.commissionRate}%</span>
+                <span className="text-sm">{vendor.commission}%</span>
               </div>
               <div className="text-sm">
-                <p>Contact: {vendor.contactPerson}</p>
-                <p>Phone: {vendor.phone}</p>
-                <p>Joined: {vendor.joinDate}</p>
+                <p>Contact: {vendor.contact_person || 'N/A'}</p>
+                <p>Phone: {vendor.phone || 'N/A'}</p>
+                <p>Joined: {vendor.created_at || 'N/A'}</p>
               </div>
             </div>
           ))}
-          
+
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full min-w-[640px] table-auto">
               <thead>
@@ -186,8 +273,8 @@ export function VendorsTable() {
                     </td>
                     <td className="py-3 px-4">
                       <div>
-                        <div>{vendor.contactPerson}</div>
-                        <div className="text-sm text-muted-foreground">{vendor.phone}</div>
+                        <div>{vendor.contact_person || 'N/A'}</div>
+                        <div className="text-sm text-muted-foreground">{vendor.phone || 'N/A'}</div>
                       </div>
                     </td>
                     <td className="py-3 px-4">
@@ -195,10 +282,12 @@ export function VendorsTable() {
                         {vendor.status}
                       </Badge>
                     </td>
-                    <td className="py-3 px-4">{vendor.commissionRate}%</td>
-                    <td className="py-3 px-4">{vendor.joinDate}</td>
+                    <td className="py-3 px-4">{vendor.commission}%</td>
+                    <td className="py-3 px-4">
+                      {vendor.created_at ? new Date(vendor.created_at).toISOString().slice(0, 10) : 'N/A'}
+                    </td>
                     <td className="py-3 px-4 text-right">
-                      <VendorActionMenu 
+                      <VendorActionMenu
                         vendor={vendor}
                         onEdit={() => handleEditVendor(vendor)}
                         onDelete={() => handleDeleteVendor(vendor)}
@@ -210,7 +299,7 @@ export function VendorsTable() {
                 {paginatedVendors.length === 0 && (
                   <tr>
                     <td colSpan={6} className="h-24 text-center text-muted-foreground">
-                      No vendors found
+                      {vendors.length === 0 ? "No vendors available" : "No matching vendors found"}
                     </td>
                   </tr>
                 )}
@@ -218,7 +307,7 @@ export function VendorsTable() {
             </table>
           </div>
         </TableWrapper>
-        
+
         <div className="flex items-center justify-between mt-6">
           <div className="text-sm text-muted-foreground">
             Showing {filteredVendors.length > 0 ? Math.min(filteredVendors.length, 1 + startIndex) : 0} to{" "}
@@ -247,7 +336,7 @@ export function VendorsTable() {
         </div>
       </CardContent>
 
-      <VendorFormDialog 
+      <VendorFormDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         vendor={editingVendor}

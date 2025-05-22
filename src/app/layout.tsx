@@ -1,6 +1,7 @@
 // app/layout.tsx (Server Component)
 import type { Metadata } from "next";
-
+import { ApiProvider } from "@/components/user/context/api-context";
+import { UserProvider } from "@/components/context/UserContext";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -11,10 +12,15 @@ import RootLayout from "@/app/RootLayout";
 import { ProductProvider } from "@/components/user/context/ProductContext";
 
 export default function Layout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <RootLayout>
-
-    <ProductProvider>
-    {children}
-    </ProductProvider>
-    </RootLayout>;
+  return (
+    <ApiProvider>
+      <UserProvider>
+        <RootLayout>
+          <ProductProvider>
+            {children}
+          </ProductProvider>
+        </RootLayout>
+      </UserProvider>
+    </ApiProvider >
+  )
 }
